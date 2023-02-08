@@ -2,6 +2,7 @@ import { useState } from "react";
 import {
     signInWithGooglePopup,
     createUserDocumentFromAuth,
+    signInAuthUserWithEmailAndPassword,
 } from "../../utils/firebase/firebase.utils";
 import Button from "../button/button.component";
 import FormInput from "../form-input/form-input.component";
@@ -30,11 +31,22 @@ const SignInForm = () => {
         event.preventDefault();
 
         try {
-            
+            const response = await signInAuthUserWithEmailAndPassword(
+                email,
+                password
+            );
+            console.log(response);
             resertFormField();
         } catch (error) {
-            if (error.code === "auth/email-already-in-use") {
-                alert("cannot create user, email already in use");
+            switch (error.code) {
+                case "auth/wrong-password":
+                    alert("incorrect password for email");
+                    break;
+                case "auth/user-not-found":
+                    alert("no user associated with this email");
+                    break;
+                default:
+                    console.log(error);
             }
             console.log("user creation encountered an error", error.message);
         }
@@ -60,8 +72,16 @@ const SignInForm = () => {
                     onChange={handleChange}
                     required
                 />
-                <Button type="submit">Sign In</Button>
-                <Button type="button" onClick={signInWithGoogle}>Google sign in</Button>
+                <div className="buttons-container">
+                    <Button type="submit">Sign In</Button>
+                    <Button
+                        type="button"
+                        buttonType="google"
+                        onClick={signInWithGoogle}
+                    >
+                        Google sign in
+                    </Button>
+                </div>
             </form>
         </div>
     );
